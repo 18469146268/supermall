@@ -1,17 +1,126 @@
 <template>
-  <div id="home">
+  <div id="home" class="wrapper">
     <nav-bar class="home-nav">
       <div slot="center">购物街</div>
     </nav-bar>
-    <home-swiper :banners="banners" />
-    <recommend-view :recommends="recommends" />
-    <feature-view />
+    <!--吸顶效果备用-->
     <tab-control
-      class="tab-control"
       :titles="['流行', '新款', '精选']"
       @tabClick="tabClick"
+      ref="tabControl1"
+      class="tab-control"
+      v-show="isTabFixed"
     />
-    <goods-list :goods="showGoods" />
+    <scroll
+      class="content"
+      ref="scroll"
+      :probe-type="3"
+      @scroll="contentScroll"
+      :pull-up-load="true"
+      @pullingUp="loadMore"
+    >
+      <home-swiper :banners="banners" @swiperImageLoad="swiperImageLoad" />
+      <recommend-view :recommends="recommends" />
+      <feature-view />
+      <!-- <tab-control
+        class="tab-control"
+        :titles="['流行', '新款', '精选']"
+        @tabClick="tabClick"
+      /> -->
+      <tab-control
+        :titles="['流行', '新款', '精选']"
+        @tabClick="tabClick"
+        ref="tabControl2"
+      />
+      <goods-list :goods="showGoods" />
+      <ul>
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+        <li>5</li>
+        <li>6</li>
+        <li>7</li>
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+        <li>5</li>
+        <li>6</li>
+        <li>7</li>
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+        <li>5</li>
+        <li>6</li>
+        <li>7</li>
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+        <li>5</li>
+        <li>6</li>
+        <li>7</li>
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+        <li>5</li>
+        <li>6</li>
+        <li>7</li>
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+        <li>5</li>
+        <li>6</li>
+        <li>7</li>
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+        <li>5</li>
+        <li>6</li>
+        <li>7</li>
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+        <li>5</li>
+        <li>6</li>
+        <li>7</li>
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+        <li>5</li>
+        <li>6</li>
+        <li>7</li>
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+        <li>5</li>
+        <li>6</li>
+        <li>7</li>
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+        <li>5</li>
+        <li>6</li>
+        <li>7</li>
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+        <li>5</li>
+        <li>6</li>
+        <li>7</li>
+      </ul>
+    </scroll>
+    <back-top @click.native="backClick" v-show="isShowBackTop"></back-top>
   </div>
 </template>
 
@@ -23,9 +132,12 @@ import FeatureView from "./childComps/FeatureView";
 import NavBar from "components/common/navbar/NavBar";
 import TabControl from "components/content/tabControl/TabControl";
 import GoodsList from "components/content/goods/GoodsList";
+import Scroll from "components/common/scroll/Scroll";
+import BackTop from "components/content/backTop/BackTop";
 
 //若没有使用default导出，则使用{}导入
 import { getHomeMultidata, getHomeGoods } from "network/home";
+import { debounce } from "common/utils"; //防抖函数
 
 export default {
   name: "Home",
@@ -36,6 +148,8 @@ export default {
     NavBar,
     TabControl,
     GoodsList,
+    Scroll,
+    BackTop,
   },
   //保存请求过来的数据
   data() {
@@ -49,12 +163,27 @@ export default {
         sell: { page: 0, list: [] },
       },
       currentType: "pop",
+      isShowBackTop: false,
+      tabOffsetTop: 0,
+      //吸顶效果
+      isTabFixed: false,
+      saveY: 1000,
     };
   },
-  computed:{
-    showGoods(){
+  computed: {
+    showGoods() {
       return this.goods[this.currentType].list;
-    }
+    },
+  },
+  destroyed() {
+    console.log("首页已经销毁！！");
+  },
+  activated() {
+    this.$refs.scroll.scrollTo(0, this.saveY, 0);
+    this.$refs.scroll.refresh();
+  },
+  deactivated() {
+    this.saveY = this.$refs.scroll.getScrollY();
   },
   //生命周期函数,在页面创建的时候请求数据
   created() {
@@ -65,10 +194,19 @@ export default {
     this.getHomeGoods("new");
     this.getHomeGoods("sell");
   },
+  mounted() {
+    //1.监听item中图片加载完成情况
+    const refresh = debounce(this.$refs.scroll.refresh, 50);
+    this.$bus.$on("itemImageLoad", () => {
+      // this.$refs.scroll.refresh();
+      refresh();
+    });
+  },
   methods: {
     /**
      * 事件监听相关的方法
      */
+    //切换['流行', '新款', '精选']不同的类型
     tabClick(index) {
       switch (index) {
         case 0:
@@ -81,7 +219,33 @@ export default {
           this.currentType = "sell";
           break;
       }
+      //让两个TabControl保持一致；
+      this.$refs.tabControl1.currentIndex = index;
+      this.$refs.tabControl2.currentIndex = index;
     },
+    //返回顶部
+    backClick() {
+      this.$refs.scroll.scrollTo(0, 0);
+    },
+    //返回顶部：按钮的消失/隐藏
+    contentScroll(position) {
+      //1.判断BackTop是否显示
+      this.isShowBackTop = -position.y > 1000;
+      //2.决定TabControl是否吸顶(position:fixed)
+      this.isTabFixed = -position.y > this.tabOffsetTop;
+    },
+    //上拉加载更多
+    loadMore() {
+      this.getHomeGoods(this.currentType);
+    },
+    //TabContaol吸顶效果
+    //获取tabControl的offsetTop
+    //所有的组件都有一个$el:用于获取组件中的元素
+    swiperImageLoad() {
+      // console.log(this.$refs.tabControl.$el.offsetTop);
+      this.tabOffsetTop = this.$refs.tabControl2.$el.offsetTop;
+    },
+
     /**
      * 网络请求相关的方法
      */
@@ -102,6 +266,8 @@ export default {
         */
         this.goods[type].list.push(...res.data.list);
         this.goods[type].page += 1;
+        //因scroll上拉加载默认只能加载一次，所以要调用一次finishPullUp()函数
+        this.$refs.scroll.finishPullUp();
       });
     },
   },
@@ -110,23 +276,44 @@ export default {
 
 <style scoped>
 #home {
-  padding-top: 44px;
+  /* padding-top: 44px; */
+  height: 100vh;
+  position: relative;
 }
 
 .home-nav {
   background-color: var(--color-tint);
   color: #fff;
-
-  position: fixed;
+  /*未只是用Better-scroll之前使nav固定在顶部*/
+  /* position: fixed;
   left: 0;
   right: 0;
   top: 0;
-  z-index: 9;
+  z-index: 9; */
 }
-.tab-control {
-  /*让tab-contrFol滚动到距离顶部还有44px时停下来（吸顶效果）*/
+/* .tab-control {
+  让tab-contrFol滚动到距离顶部还有44px时停下来（吸顶效果）
   position: sticky;
   top: 44px;
   z-index: 9;
+} */
+
+/* .content{
+  height:calc(100%-93px);
+  overflow: hidden;
+  margin-top: 44px;
+} */
+.tab-control {
+  position: relative;
+  z-index: 9;
+}
+
+.content {
+  position: absolute;
+  overflow: hidden;
+  top: 44px;
+  bottom: 49px;
+  left: 0;
+  right: 0;
 }
 </style>
