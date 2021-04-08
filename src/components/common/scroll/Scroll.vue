@@ -38,7 +38,7 @@ export default {
         this.$emit("scroll", position);
       });
     //
-    // console.log(this.scroll);
+    console.log(this.scroll);
     // this.scroll.refresh();
     //
     //3.监听上拉事件
