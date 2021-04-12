@@ -39,85 +39,101 @@
         <li>3</li>
         <li>4</li>
         <li>5</li>
-        <li>6</li>
-        <li>7</li>
         <li>1</li>
         <li>2</li>
         <li>3</li>
         <li>4</li>
         <li>5</li>
-        <li>6</li>
-        <li>7</li>
         <li>1</li>
         <li>2</li>
         <li>3</li>
         <li>4</li>
         <li>5</li>
-        <li>6</li>
-        <li>7</li>
         <li>1</li>
         <li>2</li>
         <li>3</li>
         <li>4</li>
         <li>5</li>
-        <li>6</li>
-        <li>7</li>
         <li>1</li>
         <li>2</li>
         <li>3</li>
         <li>4</li>
         <li>5</li>
-        <li>6</li>
-        <li>7</li>
         <li>1</li>
         <li>2</li>
         <li>3</li>
         <li>4</li>
         <li>5</li>
-        <li>6</li>
-        <li>7</li>
         <li>1</li>
         <li>2</li>
         <li>3</li>
         <li>4</li>
         <li>5</li>
-        <li>6</li>
-        <li>7</li>
         <li>1</li>
         <li>2</li>
         <li>3</li>
         <li>4</li>
         <li>5</li>
-        <li>6</li>
-        <li>7</li>
         <li>1</li>
         <li>2</li>
         <li>3</li>
         <li>4</li>
         <li>5</li>
-        <li>6</li>
-        <li>7</li>
         <li>1</li>
         <li>2</li>
         <li>3</li>
         <li>4</li>
         <li>5</li>
-        <li>6</li>
-        <li>7</li>
         <li>1</li>
         <li>2</li>
         <li>3</li>
         <li>4</li>
         <li>5</li>
-        <li>6</li>
-        <li>7</li>
         <li>1</li>
         <li>2</li>
         <li>3</li>
         <li>4</li>
         <li>5</li>
-        <li>6</li>
-        <li>7</li>
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+        <li>5</li>
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+        <li>5</li>
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+        <li>5</li>
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+        <li>5</li>
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+        <li>5</li>
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+        <li>5</li>
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+        <li>5</li>
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+        <li>5</li>
       </ul>
     </scroll>
     <back-top @click.native="backClick" v-show="isShowBackTop"></back-top>
@@ -133,11 +149,11 @@ import NavBar from "components/common/navbar/NavBar";
 import TabControl from "components/content/tabControl/TabControl";
 import GoodsList from "components/content/goods/GoodsList";
 import Scroll from "components/common/scroll/Scroll";
-import BackTop from "components/content/backTop/BackTop";
+// import BackTop from "components/content/backTop/BackTop";
 
 //若没有使用default导出，则使用{}导入
 import { getHomeMultidata, getHomeGoods } from "network/home";
-import { debounce } from "common/utils"; //防抖函数
+import { itemListenerMixin, backTopMixin } from "common/mixin"; //混入函数
 
 export default {
   name: "Home",
@@ -149,8 +165,9 @@ export default {
     TabControl,
     GoodsList,
     Scroll,
-    BackTop,
+    // BackTop,
   },
+  mixins: [itemListenerMixin, backTopMixin],
   //保存请求过来的数据
   data() {
     return {
@@ -163,7 +180,7 @@ export default {
         sell: { page: 0, list: [] },
       },
       currentType: "pop",
-      isShowBackTop: false,
+      // isShowBackTop: false,
       tabOffsetTop: 0,
       //吸顶效果
       isTabFixed: false,
@@ -175,15 +192,15 @@ export default {
       return this.goods[this.currentType].list;
     },
   },
-  destroyed() {
-    console.log("首页已经销毁！！");
-  },
   activated() {
     this.$refs.scroll.scrollTo(0, this.saveY, 0);
     this.$refs.scroll.refresh();
   },
   deactivated() {
+    //1.保存Y值
     this.saveY = this.$refs.scroll.getScrollY();
+    //2.取消全局事件的监听
+    // this.$bus.$off("itemImageLoad", this.ItemImgListener);
   },
   //生命周期函数,在页面创建的时候请求数据
   created() {
@@ -193,14 +210,6 @@ export default {
     this.getHomeGoods("pop");
     this.getHomeGoods("new");
     this.getHomeGoods("sell");
-  },
-  mounted() {
-    //1.监听item中图片加载完成情况
-    const refresh = debounce(this.$refs.scroll.refresh, 50);
-    this.$bus.$on("itemImageLoad", () => {
-      // this.$refs.scroll.refresh();
-      refresh();
-    });
   },
   methods: {
     /**
@@ -224,13 +233,14 @@ export default {
       this.$refs.tabControl2.currentIndex = index;
     },
     //返回顶部
-    backClick() {
-      this.$refs.scroll.scrollTo(0, 0);
-    },
+    // backClick() {
+    //   this.$refs.scroll.scrollTo(0, 0);
+    // },
     //返回顶部：按钮的消失/隐藏
     contentScroll(position) {
       //1.判断BackTop是否显示
       this.isShowBackTop = -position.y > 1000;
+      // this.listenShowBackTop();//使用混入[mixin]
       //2.决定TabControl是否吸顶(position:fixed)
       this.isTabFixed = -position.y > this.tabOffsetTop;
     },
@@ -278,6 +288,7 @@ export default {
 #home {
   /* padding-top: 44px; */
   height: 100vh;
+  /* height: 100%; */
   position: relative;
 }
 

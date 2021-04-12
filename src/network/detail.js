@@ -11,6 +11,11 @@ export function getDetail(iid) {
   })
 }
 
+export function getRecommend() {
+  return request({
+    url: '/recommend',
+  })
+}
 export class Goods {
   constructor(itemInfo, columns, services) {
     this.title = itemInfo.title;
@@ -24,8 +29,17 @@ export class Goods {
   }
 }
 
-export class Shop{
-  constructor(shopInfo){
+export class GoodsParam {
+  constructor(info, rule) {
+    //imgages可能没有值（某些商品有值，某些商品没有值）
+    this.image = info.images ? info.images[0] : '';
+    this.infos = info.set;
+    this.sizes = rule.tables;
+  }
+}
+
+export class Shop {
+  constructor(shopInfo) {
     this.logo = shopInfo.shopLogo;
     this.name = shopInfo.name;
     this.fans = shopInfo.cFans;

@@ -35,6 +35,7 @@ export default {
   methods: {
     titleClick(index) {
       this.currentIndex = index;
+      this.$emit('titleClick',index);
     },
     backClick() {
       //返回的几种方式
