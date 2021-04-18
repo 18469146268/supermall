@@ -3,7 +3,11 @@
     <cart-list-item v-for="item in cartList" :key="item.iid" :item-info="item"></cart-list-item>
   </scroll> -->
   <div class="cart-list">
-    <scroll class="content" ref="scroll">
+    <scroll class="content"
+     ref="scroll"
+    :probe-type="3"
+    :pull-up-load="true"
+    >
       <cart-list-item v-for="(item,index) in cartList" :key="index" :item-info="item"/>
       <!-- <li v-for="item in cartList">
         {{ item }}

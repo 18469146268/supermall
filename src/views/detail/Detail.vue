@@ -191,8 +191,9 @@
         <li>7</li>
       </ul>
     </scroll>
-    <back-top @click.native="backClick" v-show="isShowBackTop"></back-top>
     <detail-bottom-bar @addToCart="addToCart" />
+    <back-top @click.native="backClick" v-show="isShowBackTop"></back-top>
+    <!-- <toast :message="message" :show="show" /> -->
   </div>
 </template>
 
@@ -208,6 +209,7 @@ import DetailBottomBar from "./childComps/DetailBottomBar";
 
 import Scroll from "components/common/scroll/Scroll";
 import GoodsList from "components/content/goods/GoodsList";
+// import Toast from "components/common/toast/Toast";
 // import BackTop from "components/content/backTop/BackTop";
 
 import { itemListenerMixin, backTopMixin } from "common/mixin"; //混入函数
@@ -221,6 +223,7 @@ import {
 } from "network/detail";
 
 import { debounce } from "common/utils";
+import { mapActions } from "vuex";
 
 export default {
   name: "Detail",
@@ -236,6 +239,7 @@ export default {
 
     Scroll,
     GoodsList,
+    // Toast,
     // BackTop,
   },
   mixins: [itemListenerMixin, backTopMixin],
@@ -252,6 +256,8 @@ export default {
       themeTopYs: [],
       getThemTopY: null,
       currentIndex: 0,
+      // message: "",
+      // show: false,
       // isShowBackTop: false,
     };
   },
@@ -314,6 +320,7 @@ export default {
     this.$bus.$off("itemImageLoad", this.ItemImgListener);
   },
   methods: {
+    ...mapActions(["addCart"]),
     imageLoad() {
       this.$refs.scroll.refresh();
       this.getThemTopY();
@@ -380,7 +387,22 @@ export default {
       product.iid = this.iid;
       //2.将商品添加到购物车里面
       // this.$store.commit("addCart", product);
-      this.$store.dispatch("addCart",product);
+      //1.法一
+      // this.$store.dispatch("addCart", product).then((res) => {
+      //   console.log(res);
+      // });
+      //2.法二
+      this.addCart(product).then((res) => {
+        // this.show = true;
+        // this.message = res;
+        // setTimeout(() => {
+        //   this.show = false;
+        //   this.message = "";
+        // }, 1500);
+        this.$toast.show(res,2000);
+      });
+
+      //3.添加到购物车成功
     },
   },
 };
