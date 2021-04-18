@@ -4,7 +4,7 @@ export function request(config) {
   // 1.创建axios的实例
   const instance = axios.create({
     // baseURL: 'http://xxx.xxx.xx.xx:xxxx',
-    baseURL:'http://xxx.xxx.xxx.xxx:xxxx/xxx/xx',
+    baseURL:'http://***.***.***.***:****/***/**',
     timeout: 5000
   })
 
